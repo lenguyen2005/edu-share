@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./ERD.png"
+}
+
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  password       String
+  fullName       String
+  role           Role           @default(STUDENT)
+  exp            Int            @default(0)
+  level          Int            @default(1)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+  answers        Answer[]
+  documents      Document[]
+  pointHistories PointHistory[]
+  questions      Question[]
+  refreshToken String?
+
+  @@index([deletedAt])
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String
+  parentId  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
+  parent    Category?  @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryToCategory")
+  documents Document[]
+
+  @@unique([name, parentId])
+  @@index([parentId])
+  @@index([deletedAt])
+}
+
+model Document {
+  id          String         @id @default(uuid())
+  title       String
+  description String?
+  fileKey     String
+  status      DocumentStatus @default(PUBLISHED)
+  authorId    String
+  categoryId  String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  deletedAt   DateTime?
+  author      User           @relation(fields: [authorId], references: [id])
+  category    Category       @relation(fields: [categoryId], references: [id])
+  questions   Question[]
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@index([deletedAt])
+}
+
+model Question {
+  id         String    @id @default(uuid())
+  content    String
+  isResolved Boolean   @default(false)
+  documentId String
+  userId     String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  answers    Answer[]
+  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id])
+
+  @@index([documentId, createdAt(sort: Desc)])
+  @@index([isResolved])
+  @@index([deletedAt])
+}
+
+model Answer {
+  id         String    @id @default(uuid())
+  content    String
+  isAccepted Boolean   @default(false)
+  questionId String
+  userId     String
+  parentId   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  parent     Answer?   @relation("AnswerToAnswer", fields: [parentId], references: [id])
+  children   Answer[]  @relation("AnswerToAnswer")
+  question   Question  @relation(fields: [questionId], references: [id])
+  user       User      @relation(fields: [userId], references: [id])
+
+  @@index([questionId, createdAt])
+  @@index([deletedAt])
+}
+
+model PointHistory {
+  id            String      @id @default(uuid())
+  userId        String
+  amount        Int
+  reason        PointReason
+  referenceId   String?
+  referenceType String?
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([referenceId])
+}
+
+model LevelConfig {
+  level  Int    @id
+  minExp Int
+  title  String
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum DocumentStatus {
+  DRAFT
+  PUBLISHED
+  PRIVATE
+  BANNED
+}
+
+enum PointReason {
+  UPLOAD_DOCUMENT
+  ANSWER_ACCEPTED
+}
