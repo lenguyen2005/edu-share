@@ -12,6 +12,7 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
+import { HealthController } from './presentation/controllers/health.controller';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-c
     }),
     PassportModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, HealthController],
   providers: [
     RegisterUseCase,
     LoginUseCase,
