@@ -6,7 +6,11 @@ import {
   HttpStatus,
   Get,
   UseGuards,
+  Res,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { RegisterDto } from '../dtos/register.dto';
 import { RegisterUseCase } from '../../application/use-cases/register.use-case';
 import { RegisterInput } from '../../application/inputs/register.input';
@@ -21,6 +25,7 @@ import { LogoutUseCase } from '../../application/use-cases/logout.use-case';
 import { RolesGuard } from '../../infrastructure/guards/roles.guard';
 import { Role } from '../../domain/enum/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { cookieOptions } from '../config/cookie-options';
 
 @Controller('auth')
 export class AuthController {
@@ -55,14 +60,24 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() dto: LoginDto) {
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true })
+    res: Response,
+  ) {
     const result = await this.loginUseCase.execute({
       email: dto.email,
       password: dto.password,
     });
+
+    res.cookie('refreshToken', result.refreshToken, cookieOptions);
+
     return {
       success: true,
-      data: result,
+      data: {
+        accessToken: result.accessToken,
+        user: result.user,
+      },
     };
   }
 
@@ -77,19 +92,40 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(@Body('refreshToken') refreshToken: string) {
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true })
+    res: Response,
+  ) {
+    const refreshToken = req.cookies.refreshToken as string;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token missing');
+    }
+
     const result = await this.refreshTokenUseCase.execute(refreshToken);
+
+    res.cookie('refreshToken', result.refreshToken, cookieOptions);
+
     return {
       success: true,
-      data: result,
+
+      data: {
+        accessToken: result.accessToken,
+      },
     };
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@CurrentUser() user: IUserIdentity) {
+  async logout(
+    @CurrentUser() user: IUserIdentity,
+    @Res({ passthrough: true })
+    res: Response,
+  ) {
     await this.logoutUseCase.execute(user.id);
+
+    res.clearCookie('refreshToken', cookieOptions);
 
     return {
       success: true,
@@ -101,6 +137,9 @@ export class AuthController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   doAdminAction() {
-    return { message: 'Chào sếp!' };
+    return {
+      success: true,
+      message: 'Chào sếp!',
+    };
   }
 }
