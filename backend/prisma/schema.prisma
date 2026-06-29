@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 generator erd {
@@ -14,21 +13,22 @@ generator erd {
 }
 
 model User {
-  id             String         @id @default(uuid())
-  email          String         @unique
-  password       String
-  fullName       String
-  role           Role           @default(STUDENT)
-  exp            Int            @default(0)
-  level          Int            @default(1)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  deletedAt      DateTime?
-  answers        Answer[]
-  documents      Document[]
-  pointHistories PointHistory[]
-  questions      Question[]
+  id           String  @id @default(uuid())
+  email        String  @unique
+  password     String
+  fullName     String
+  role         Role    @default(STUDENT)
+  exp          Int     @default(0)
+  level        Int     @default(1)
   refreshToken String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  documents      Document[]
+  comments       Comment[]
+  pointHistories PointHistory[]
 
   @@index([deletedAt])
 }
@@ -55,14 +55,17 @@ model Document {
   description String?
   fileKey     String
   status      DocumentStatus @default(PUBLISHED)
-  authorId    String
-  categoryId  String
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  deletedAt   DateTime?
-  author      User           @relation(fields: [authorId], references: [id])
-  category    Category       @relation(fields: [categoryId], references: [id])
-  questions   Question[]
+
+  authorId   String
+  categoryId String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  author   User      @relation(fields: [authorId], references: [id])
+  category Category  @relation(fields: [categoryId], references: [id])
+  comments Comment[]
 
   @@index([authorId])
   @@index([categoryId])
@@ -71,40 +74,30 @@ model Document {
   @@index([deletedAt])
 }
 
-model Question {
-  id         String    @id @default(uuid())
-  content    String
-  isResolved Boolean   @default(false)
+model Comment {
+  id String @id @default(uuid())
+
+  content String
+
   documentId String
   userId     String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime?
-  answers    Answer[]
-  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [userId], references: [id])
+
+  parentId String?
+
+  isResolved Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  parent   Comment?  @relation("CommentTree", fields: [parentId], references: [id])
+  children Comment[] @relation("CommentTree")
 
   @@index([documentId, createdAt(sort: Desc)])
-  @@index([isResolved])
-  @@index([deletedAt])
-}
-
-model Answer {
-  id         String    @id @default(uuid())
-  content    String
-  isAccepted Boolean   @default(false)
-  questionId String
-  userId     String
-  parentId   String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  deletedAt  DateTime?
-  parent     Answer?   @relation("AnswerToAnswer", fields: [parentId], references: [id])
-  children   Answer[]  @relation("AnswerToAnswer")
-  question   Question  @relation(fields: [questionId], references: [id])
-  user       User      @relation(fields: [userId], references: [id])
-
-  @@index([questionId, createdAt])
+  @@index([parentId])
   @@index([deletedAt])
 }
 
