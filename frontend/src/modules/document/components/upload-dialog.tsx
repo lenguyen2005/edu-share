@@ -17,11 +17,19 @@ export function UploadDialog({ categoryId }: { categoryId: string }) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
-  const { upload, isUploading } = useUploadDocument();
+  const {
+    mutateAsync,
+    isPending,
+  } = useUploadDocument();
 
   const handleUpload = async () => {
     if (!file || !title) return;
-    const success = await upload({ title, categoryId, file, status: "DRAFT" });
+    const success = await mutateAsync({
+      title,
+      categoryId,
+      file,
+      status: "DRAFT",
+    });
     if (success) {
       setOpen(false); // Đóng modal nếu thành công
       setFile(null);
@@ -49,8 +57,8 @@ export function UploadDialog({ categoryId }: { categoryId: string }) {
             <Label>Tập tin</Label>
             <Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </div>
-          <Button onClick={handleUpload} disabled={isUploading || !file || !title}>
-            {isUploading ? "Đang xử lý..." : "Bắt đầu tải lên"}
+          <Button onClick={handleUpload} disabled={isPending || !file || !title}>
+            {isPending ? "Đang xử lý..." : "Bắt đầu tải lên"}
           </Button>
         </div>
       </DialogContent>

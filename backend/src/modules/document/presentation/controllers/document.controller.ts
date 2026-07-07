@@ -24,6 +24,7 @@ import { ArchiveDocumentUseCase } from '../../application/use-cases/archive-docu
 import { GetDocumentsUseCase } from '../../application/use-cases/get-documents.use-case';
 import { OptionalJwtAuthGuard } from 'src/modules/auth/infrastructure/guards/optional-jwt-auth.guard';
 import { PublishDocumentUseCase } from '../../application/use-cases/publish-document.use-case';
+import { GetDocumentUseCase } from '../../application/use-cases/get-document.use-case';
 
 @Controller('documents')
 export class DocumentController {
@@ -33,7 +34,18 @@ export class DocumentController {
     private readonly archiveDocumentUseCase: ArchiveDocumentUseCase,
     private readonly getDocumentsUseCase: GetDocumentsUseCase,
     private readonly publishDocumentUseCase: PublishDocumentUseCase,
+    private readonly getDocumentUseCase: GetDocumentUseCase,
   ) {}
+
+  @Get(':id')
+  async getById(@Param('id') id: string, @CurrentUser() user?: IUserIdentity) {
+    const document = await this.getDocumentUseCase.execute({
+      documentId: id,
+      currentUserId: user?.id,
+    });
+
+    return document;
+  }
 
   @Post('upload')
   @UseGuards(JwtAuthGuard)

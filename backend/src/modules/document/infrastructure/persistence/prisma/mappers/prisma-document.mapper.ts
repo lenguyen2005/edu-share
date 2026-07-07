@@ -39,8 +39,11 @@ export class PrismaDocumentMapper {
       fileKey: domain.getFileKey(),
       categoryId: domain.getCategoryId(),
       status: this.mapStatusToPrisma(domain.getStatus()),
+      updatedAt: domain.getUpdatedAt(),
+      deletedAt: domain.getDeletedAt(),
     };
   }
+
   private static mapStatusToDomain(status: PrismaStatus): DocumentStatus {
     switch (status) {
       case PrismaStatus.DRAFT:

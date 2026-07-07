@@ -63,7 +63,7 @@ function buildOptions(categories: Category[], level = 0): React.ReactNode[] {
 /* ================= COMPONENT ================= */
 export function UploadForm() {
   const { data: categories } = useCategoryTree();
-  const { upload, isUploading } = useUploadDocument();
+  const { mutateAsync, isPending } = useUploadDocument();
   const router = useRouter();
 
   const form = useForm<UploadSchemaType>({
@@ -89,17 +89,19 @@ export function UploadForm() {
   }, [categories]);
 
   async function onSubmit(values: UploadSchemaType) {
-    const success = await upload({
-      title: values.title,
-      description: values.description,
-      categoryId: values.categoryId,
-      file: values.file,
-      status: values.isPublished ? "PUBLISHED" : "DRAFT",
-    });
+    try {
+      await mutateAsync({
+        title: values.title,
+        description: values.description,
+        categoryId: values.categoryId,
+        file: values.file,
+        status: values.isPublished ? "PUBLISHED" : "DRAFT",
+      });
 
-    if (success) {
       form.reset();
       router.push("/");
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -214,8 +216,8 @@ export function UploadForm() {
         />
 
         {/* Submit */}
-        <Button type="submit" className="w-full" disabled={isUploading}>
-          {isUploading ? "Đang tải lên..." : "Xác nhận đăng tài liệu"}
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? "Đang tải lên..." : "Xác nhận đăng tài liệu"}
         </Button>
       </form>
     </Form>

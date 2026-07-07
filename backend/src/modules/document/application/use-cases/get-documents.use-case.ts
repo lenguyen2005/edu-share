@@ -1,29 +1,27 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { IDocumentRepository } from '../../domain/interfaces/document.repository.interface';
+import { IDocumentQueryRepository } from '../../domain/interfaces/document-query.repository.interface';
 import { GetDocumentsQueryDto } from '../dtos/get-documents-query.dto';
 
 @Injectable()
 export class GetDocumentsUseCase {
   constructor(
-    @Inject('IDocumentRepository')
-    private readonly documentRepository: IDocumentRepository,
+    @Inject('IDocumentQueryRepository')
+    private readonly repository: IDocumentQueryRepository,
   ) {}
 
   async execute(query: GetDocumentsQueryDto, currentUserId?: string) {
-    const { page = 1, limit = 10, categoryId, search } = query;
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
 
-    const skip = (page - 1) * limit;
-
-    const [documents, total] = await this.documentRepository.findAll({
-      skip,
+    const [items, total] = await this.repository.findAll({
+      ...query,
+      skip: (page - 1) * limit,
       take: limit,
-      categoryId,
-      search,
       currentUserId,
     });
 
     return {
-      items: documents.map((doc) => doc.getProps()),
+      items,
       meta: {
         total,
         page,

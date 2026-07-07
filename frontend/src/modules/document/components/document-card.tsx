@@ -1,104 +1,161 @@
 "use client";
-import { useState } from "react";
-import { FileText, Download, Lock, Clock } from "lucide-react";
+
+import { useRouter } from "next/navigation";
+import { Clock, Download, FileText, Lock, Trash2 } from "lucide-react";
+
+import { useAuthStore } from "@/modules/auth/store/use-auth-store";
+
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
-import { documentApi } from "../api/document.api";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 import { DocumentDto } from "../types/document.dto";
-import axiosClient from "@/shared/api/axios-client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useDownloadDocument } from "../hooks/use-download-document";
+import { usePublishDocument } from "../hooks/use-publish-document";
+import { useDeleteDocument } from "../hooks/use-delete-document";
 
 interface DocumentCardProps {
   document: DocumentDto;
 }
 
-export function DocumentCard({ document }: DocumentCardProps) {
-  const [isPublishing, setIsPublishing] = useState(false);
-  const queryClient = useQueryClient();
+export function DocumentCard({
+  document,
+}: DocumentCardProps) {
+  const router = useRouter();
+
+  const publishDocument = usePublishDocument();
+  const downloadDocument = useDownloadDocument();
+  const deleteDocument = useDeleteDocument();
 
   const isDraft = document.status === "DRAFT";
 
-  // ===== Download =====
-  const handleDownload = async () => {
-    try {
-      const res = await documentApi.getDownloadLink(document.id);
-      const { url } = res.data.data;
-      window.open(url, "_blank");
-    } catch {
-      toast.error("Bạn không có quyền tải tài liệu này hoặc liên kết đã hết hạn.");
-    }
+  const currentUser = useAuthStore((state) => state.user);
+
+  const isOwner = currentUser?.id === document.author.id;
+
+  const formattedDate = new Date(
+    document.createdAt,
+  ).toLocaleDateString("vi-VN");
+
+  const handleOpenDocument = () => {
+    router.push(`/documents/${document.id}`);
   };
 
-  // ===== Publish =====
-  const handlePublish = async () => {
-    try {
-      setIsPublishing(true);
+  const handleDownload = (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    e.stopPropagation();
 
-      await axiosClient.patch(`/documents/${document.id}/publish`);
+    downloadDocument.mutate(document.id);
+  };
 
-      toast.success("Tài liệu đã được công khai!");
+  const handlePublish = (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    e.stopPropagation();
 
-      // Refetch list
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
-    } catch {
-      toast.error("Không thể công khai tài liệu.");
-    } finally {
-      setIsPublishing(false);
+    publishDocument.mutate(document.id);
+  };
+
+  const handleDelete = (
+    e: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    e.stopPropagation();
+
+    if (!confirm("Bạn có chắc chắn muốn xóa tài liệu này?")) {
+      return;
     }
+
+    deleteDocument.mutate(document.id);
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <CardHeader className="p-4 flex flex-row items-center space-x-3 space-y-0">
-        <div className="p-2 bg-blue-50 rounded-lg">
-          <FileText className="text-blue-600" size={24} />
+    <Card
+      className="cursor-pointer overflow-hidden transition-shadow hover:shadow-md"
+      onClick={handleOpenDocument}
+    >
+      <CardHeader className="flex flex-row items-center space-x-3 space-y-0 p-4">
+        <div className="rounded-lg bg-blue-50 p-2">
+          <FileText
+            size={24}
+            className="text-blue-600"
+          />
         </div>
 
-        <div className="flex-1 min-w-0">
-          <CardTitle className="text-sm font-semibold truncate">
+        <div className="min-w-0 flex-1">
+          <CardTitle className="truncate text-sm font-semibold">
             {document.title}
           </CardTitle>
 
-          <div className="flex items-center text-xs text-slate-500 mt-1">
-            <Clock size={12} className="mr-1" />
-            {new Date(document.createdAt).toLocaleDateString("vi-VN")}
+          <div className="mt-1 flex items-center text-xs text-slate-500">
+            <Clock
+              size={12}
+              className="mr-1"
+            />
+            {formattedDate}
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="px-4 py-2">
-        <p className="text-xs text-slate-600 line-clamp-2 min-h-[32px]">
-          {document.description || "Không có mô tả cho tài liệu này."}
+        <p className="min-h-[32px] line-clamp-2 text-xs text-slate-600">
+          {document.description ??
+            "Không có mô tả cho tài liệu này."}
         </p>
 
         {isDraft && (
-          <div className="mt-2 flex items-center text-amber-600 text-[10px] font-bold uppercase">
-            <Lock size={10} className="mr-1" /> Bản nháp (Chỉ bạn thấy)
+          <div className="mt-2 flex items-center text-[10px] font-bold uppercase text-amber-600">
+            <Lock
+              size={10}
+              className="mr-1"
+            />
+            Bản nháp (Chỉ bạn thấy)
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="p-4 pt-0 flex flex-col gap-2">
-        {/* Download */}
+      <CardFooter className="flex flex-col gap-2 p-4 pt-0">
         <Button
           variant="outline"
           size="sm"
           className="w-full gap-2 text-xs"
           onClick={handleDownload}
+          disabled={downloadDocument.isPending}
         >
-          <Download size={14} /> Tải xuống
+          <Download size={14} />
+          {downloadDocument.isPending
+            ? "Đang lấy liên kết..."
+            : "Tải xuống"}
         </Button>
 
-        {/* Publish */}
         {isDraft && (
           <Button
             size="sm"
-            className="w-full gap-2 text-xs bg-green-600 hover:bg-green-700"
+            className="w-full gap-2 bg-green-600 text-xs hover:bg-green-700"
             onClick={handlePublish}
-            disabled={isPublishing}
+            disabled={publishDocument.isPending}
           >
-            {isPublishing ? "Đang xử lý..." : "Công khai ngay"}
+            {publishDocument.isPending
+              ? "Đang xử lý..."
+              : "Công khai ngay"}
+          </Button>
+        )}
+
+        {isOwner && (
+          <Button
+            variant="destructive"
+            size="sm"
+            className="w-full gap-2 text-xs"
+            onClick={handleDelete}
+            disabled={deleteDocument.isPending}
+          >
+            <Trash2 size={14} />
+            {deleteDocument.isPending ? "Đang xóa..." : "Xóa"}
           </Button>
         )}
       </CardFooter>
