@@ -8,6 +8,7 @@ import { join } from 'path';
 import { DocumentModule } from './modules/document/document.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { CategoryModule } from './modules/category/category.module';
+import { CommentModule } from './modules/comment/comment.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { CategoryModule } from './modules/category/category.module';
     DocumentModule,
     SeedModule,
     CategoryModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
