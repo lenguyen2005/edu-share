@@ -7,17 +7,19 @@ import { useAuthStore } from "@/modules/auth/store/use-auth-store";
 import { useRouter } from "next/navigation";
 
 export default function UploadPage() {
-  const { isAuthenticated, hasHydrated } = useAuthStore();
+  const {
+    accessToken,
+    isInitializing,
+  } = useAuthStore();
+
+  const isAuthenticated = !!accessToken;
   const router = useRouter();
 
   useEffect(() => {
-    if (hasHydrated && !isAuthenticated) {
+    if (!isInitializing && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [hasHydrated, isAuthenticated, router]);
-
-  if (!hasHydrated) return null;
-  if (!isAuthenticated) return null;
+  }, [isInitializing, isAuthenticated, router]);
 
   return (
     <AuthGuard>
