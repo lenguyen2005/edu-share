@@ -26,6 +26,8 @@ import { RolesGuard } from '../../infrastructure/guards/roles.guard';
 import { Role } from '../../domain/enum/role.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { cookieOptions } from '../config/cookie-options';
+import { AuthResponseDto } from '../dtos/auth-response.dto';
+import { GetUserProfileUseCase } from '../../application/use-cases/get-user-profile.use-case';
 
 @Controller('auth')
 export class AuthController {
@@ -34,6 +36,7 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly logoutUseCase: LogoutUseCase,
+    private readonly getUserProfileUseCase: GetUserProfileUseCase,
   ) {}
 
   @Post('register')
@@ -62,8 +65,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() dto: LoginDto,
-    @Res({ passthrough: true })
-    res: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.loginUseCase.execute({
       email: dto.email,
@@ -74,19 +76,31 @@ export class AuthController {
 
     return {
       success: true,
-      data: {
-        accessToken: result.accessToken,
-        user: result.user,
-      },
+      data: new AuthResponseDto(
+        result.accessToken,
+        new UserResponseDto(
+          result.user.id,
+          result.user.email,
+          result.user.fullName,
+          result.user.role,
+        ),
+      ),
     };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  getProfile(@CurrentUser() user: IUserIdentity) {
+  async me(@CurrentUser() currentUser: IUserIdentity) {
+    const user = await this.getUserProfileUseCase.execute(currentUser.id);
+
     return {
       success: true,
-      data: user,
+      data: new UserResponseDto(
+        user.id,
+        user.getEmail().getValue(),
+        user.getFullName(),
+        user.getRole(),
+      ),
     };
   }
 
@@ -94,10 +108,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Req() req: Request,
-    @Res({ passthrough: true })
-    res: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = req.cookies.refreshToken as string;
+
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token missing');
     }
@@ -108,10 +122,15 @@ export class AuthController {
 
     return {
       success: true,
-
-      data: {
-        accessToken: result.accessToken,
-      },
+      data: new AuthResponseDto(
+        result.accessToken,
+        new UserResponseDto(
+          result.user.id,
+          result.user.email,
+          result.user.fullName,
+          result.user.role,
+        ),
+      ),
     };
   }
 

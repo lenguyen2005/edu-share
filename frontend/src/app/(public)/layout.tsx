@@ -8,9 +8,19 @@ import { useLogout } from "@/modules/auth/hooks/use-logout";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   
-  const { isAuthenticated, user, hasHydrated } = useAuthStore();
+  const {
+    accessToken,
+    user,
+    isInitializing,
+  } = useAuthStore();
+
+  const isAuthenticated = !!accessToken;
+
   const logout = useLogout();
-  if (!hasHydrated) return null;
+
+  if (isInitializing) {
+    return null;
+}
 
   return (
     <div className="flex min-h-screen bg-slate-50">

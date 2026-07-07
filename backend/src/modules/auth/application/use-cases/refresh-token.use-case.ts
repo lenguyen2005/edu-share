@@ -58,6 +58,12 @@ export class RefreshTokenUseCase {
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
+      user: {
+        id: user.id,
+        email: user.getEmail().getValue(),
+        fullName: user.getFullName(),
+        role: user.getRole(),
+      },
     };
   }
 }

@@ -4,7 +4,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
+  const { accessToken } = useAuthStore();
+  const isAuthenticated = !!accessToken;
   const router = useRouter();
   const pathname = usePathname();
 

@@ -1,44 +1,45 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { User } from '../types/user.type';
+import { create } from "zustand";
+import { UserDto } from "../types/user.type";
 
 interface AuthState {
-  user: User | null;
+  user: UserDto | null;
   accessToken: string | null;
-  isAuthenticated: boolean;
-  hasHydrated: boolean;
-  setAuth: (user: User, accessToken: string) => void;
+
+  isInitializing: boolean;
+
+  setAuth: (user: UserDto, accessToken: string) => void;
   logout: () => void;
-  setHasHydrated: (state: boolean) => void;
+  finishInitializing: () => void;
+  startInitializing: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  accessToken: null,
+
+  isInitializing: true,
+
+  setAuth: (user, accessToken) =>
+    set({
+      user,
+      accessToken,
+      isInitializing: false,
+    }),
+
+  logout: () =>
+    set({
       user: null,
       accessToken: null,
-      isAuthenticated: false,
-      hasHydrated: false,
-      setAuth: (user, accessToken) =>
-        set({ user, accessToken, isAuthenticated: !!accessToken }),
-      logout: () =>
-        set({ user: null, accessToken: null, isAuthenticated: false }),
-      setHasHydrated: (state) => set({ hasHydrated: state }),
-      }),
-      {
-        name: "auth-storage",
-        
-        partialize: (state) => ({
-          user: state.user,
-          accessToken: state.accessToken,
-          }), 
+      isInitializing: false,
+    }),
 
-        onRehydrateStorage: () => (state) => {
-          if (state) {
-            state.isAuthenticated = !!state.accessToken; 
-            state.setHasHydrated(true);
-          }
-        },
-      }
-  )
-);
+  finishInitializing: () =>
+    set({
+      isInitializing: false,
+    }),
+
+  startInitializing: () =>
+    set({
+      isInitializing: true,
+    }),
+}));

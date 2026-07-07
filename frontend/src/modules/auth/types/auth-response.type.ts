@@ -1,8 +1,8 @@
-import { User } from '../types/user.type';
+import { UserDto } from '../types/user.type';
 export interface AuthResponse {
   success: boolean;
   data: {
-    user: User;
+    user: UserDto;
     accessToken: string;
   };
   message?: string;

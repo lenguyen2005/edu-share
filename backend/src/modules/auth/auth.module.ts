@@ -13,6 +13,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
 import { HealthController } from './presentation/controllers/health.controller';
+import { GetUserProfileUseCase } from './application/use-cases/get-user-profile.use-case';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { HealthController } from './presentation/controllers/health.controller';
     LoginUseCase,
     LogoutUseCase,
     RefreshTokenUseCase,
+    GetUserProfileUseCase,
 
     { provide: 'IUserRepository', useClass: PrismaUserRepository },
     { provide: 'IPasswordHasher', useClass: BcryptPasswordHasher },
