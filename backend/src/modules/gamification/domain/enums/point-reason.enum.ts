@@ -1,0 +1,5 @@
+export enum PointReason {
+  UPLOAD_DOCUMENT = 'UPLOAD_DOCUMENT',
+
+  ANSWER_ACCEPTED = 'ANSWER_ACCEPTED',
+}

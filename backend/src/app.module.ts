@@ -5,10 +5,12 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { CqrsModule } from '@nestjs/cqrs';
 import { DocumentModule } from './modules/document/document.module';
 import { SeedModule } from './modules/seed/seed.module';
 import { CategoryModule } from './modules/category/category.module';
 import { CommentModule } from './modules/comment/comment.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
 
 @Module({
   imports: [
@@ -21,10 +23,12 @@ import { CommentModule } from './modules/comment/comment.module';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/static',
     }),
+    CqrsModule,
     DocumentModule,
     SeedModule,
     CategoryModule,
     CommentModule,
+    GamificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

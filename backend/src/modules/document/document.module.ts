@@ -10,9 +10,10 @@ import { ArchiveDocumentUseCase } from './application/use-cases/archive-document
 import { PublishDocumentUseCase } from './application/use-cases/publish-document.use-case';
 import { GetDocumentUseCase } from './application/use-cases/get-document.use-case';
 import { AuthModule } from '../auth/auth.module';
+import { CqrsModule } from '@nestjs/cqrs';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, CqrsModule],
   controllers: [DocumentController],
   providers: [
     UploadDocumentUseCase,
