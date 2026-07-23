@@ -1,5 +1,5 @@
 import { CommentEntity } from '../../domain/entities/comment.entity';
-import { CommentResponse } from '../responses/comment.response';
+import { CommentResponse } from '../dtos/comment.response';
 
 export class CommentResponseMapper {
   static toResponse(entity: CommentEntity): CommentResponse {

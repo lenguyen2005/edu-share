@@ -21,8 +21,8 @@ import { ResolveCommentUseCase } from '../../application/use-cases/resolve-comme
 import { ReplyCommentUseCase } from '../../application/use-cases/reply-comment.usecase';
 import { GetDocumentCommentsUseCase } from '../../application/use-cases/get-document-comments.usecase';
 
-import { CreateCommentRequest } from '../requests/create-comment.request';
-import { UpdateCommentRequest } from '../requests/update-comment.request';
+import { CreateCommentRequest } from '../dtos/create-comment.request';
+import { UpdateCommentRequest } from '../dtos/update-comment.request';
 
 import { CreateCommentCommand } from '../../application/commands/create-comment.command';
 import { UpdateCommentCommand } from '../../application/commands/update-comment.command';
