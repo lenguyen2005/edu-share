@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { PrismaService } from 'src/shared/database/prisma/prisma.service';
+import { PrismaDbContext } from 'src/shared/database/prisma/prisma-db-context';
 
 import { GetDocumentsQueryDto } from 'src/modules/document/application/dtos/get-documents-query.dto';
 import { DocumentSummaryQuery } from 'src/modules/document/application/queries/document-summary.query';
@@ -8,10 +8,16 @@ import { DocumentSummaryQuery } from 'src/modules/document/application/queries/d
 import { IDocumentQueryRepository } from 'src/modules/document/domain/interfaces/document-query.repository.interface';
 
 import { DocumentStatus } from '@prisma/client';
+import { BasePrismaRepository } from 'src/shared/database/prisma/base-prisma.repository';
 
 @Injectable()
-export class PrismaDocumentQueryRepository implements IDocumentQueryRepository {
-  constructor(private readonly prisma: PrismaService) {}
+export class PrismaDocumentQueryRepository
+  extends BasePrismaRepository
+  implements IDocumentQueryRepository
+{
+  constructor(db: PrismaDbContext) {
+    super(db);
+  }
 
   async findAll(
     filters: GetDocumentsQueryDto & {

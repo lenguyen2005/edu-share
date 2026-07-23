@@ -1,12 +1,18 @@
+import { BasePrismaRepository } from 'src/shared/database/prisma/base-prisma.repository';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/shared/database/prisma/prisma.service';
+import { PrismaDbContext } from 'src/shared/database/prisma/prisma-db-context';
 import { ICategoryRepository } from '../../../../domain/interfaces/category.repository.interface';
 import { CategoryEntity } from '../../../../domain/entities/category.entity';
 import { PrismaCategoryMapper } from '../mappers/prisma-category.mapper';
 
 @Injectable()
-export class PrismaCategoryRepository implements ICategoryRepository {
-  constructor(private readonly prisma: PrismaService) {}
+export class PrismaCategoryRepository
+  extends BasePrismaRepository
+  implements ICategoryRepository
+{
+  constructor(db: PrismaDbContext) {
+    super(db);
+  }
 
   async save(category: CategoryEntity): Promise<CategoryEntity> {
     const data = PrismaCategoryMapper.toPrisma(category);

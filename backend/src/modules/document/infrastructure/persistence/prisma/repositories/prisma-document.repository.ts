@@ -1,15 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/shared/database/prisma/prisma.service';
+import { PrismaDbContext } from 'src/shared/database/prisma/prisma-db-context';
 import {
   IDocumentRepository,
   DocumentFilters,
 } from '../../../../domain/interfaces/document.repository.interface';
 import { DocumentEntity } from '../../../../domain/entities/document.entity';
 import { PrismaDocumentMapper } from '../mappers/prisma-document.mapper';
+import { BasePrismaRepository } from 'src/shared/database/prisma/base-prisma.repository';
 
 @Injectable()
-export class PrismaDocumentRepository implements IDocumentRepository {
-  constructor(private readonly prisma: PrismaService) {}
+export class PrismaDocumentRepository
+  extends BasePrismaRepository
+  implements IDocumentRepository
+{
+  constructor(db: PrismaDbContext) {
+    super(db);
+  }
 
   async create(document: DocumentEntity): Promise<DocumentEntity> {
     const data = PrismaDocumentMapper.toPrismaCreate(document);

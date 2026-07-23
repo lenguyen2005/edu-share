@@ -1,13 +1,19 @@
+import { BasePrismaRepository } from 'src/shared/database/prisma/base-prisma.repository';
 import { Injectable } from '@nestjs/common';
 
-import { PrismaService } from 'src/shared/database/prisma/prisma.service';
+import { PrismaDbContext } from 'src/shared/database/prisma/prisma-db-context';
 
 import { ICommentQueryRepository } from 'src/modules/comment/domain/interfaces/comment-query.repository.interface';
 import { CommentTreeDto } from 'src/modules/comment/application/dtos/comment-tree.dto';
 
 @Injectable()
-export class PrismaCommentQueryRepository implements ICommentQueryRepository {
-  constructor(private readonly prisma: PrismaService) {}
+export class PrismaCommentQueryRepository
+  extends BasePrismaRepository
+  implements ICommentQueryRepository
+{
+  constructor(db: PrismaDbContext) {
+    super(db);
+  }
 
   async findTreeByDocumentId(documentId: string): Promise<CommentTreeDto[]> {
     const comments = await this.prisma.comment.findMany({

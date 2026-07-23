@@ -1,15 +1,21 @@
 import { Injectable } from '@nestjs/common';
 
-import { PrismaService } from 'src/shared/database/prisma/prisma.service';
+import { PrismaDbContext } from 'src/shared/database/prisma/prisma-db-context';
 
 import { CommentEntity } from 'src/modules/comment/domain/entities/comment.entity';
 import { CommentRepository } from 'src/modules/comment/domain/interfaces/comment.repository.interface';
 
 import { CommentMapper } from '../mappers/comment.mapper';
+import { BasePrismaRepository } from 'src/shared/database/prisma/base-prisma.repository';
 
 @Injectable()
-export class PrismaCommentRepository implements CommentRepository {
-  constructor(private readonly prisma: PrismaService) {}
+export class PrismaCommentRepository
+  extends BasePrismaRepository
+  implements CommentRepository
+{
+  constructor(db: PrismaDbContext) {
+    super(db);
+  }
 
   async create(comment: CommentEntity): Promise<CommentEntity> {
     const created = await this.prisma.comment.create({
