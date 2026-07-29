@@ -1,15 +1,19 @@
-services:
-  minio:
-    image: minio/minio
-    ports:
-      - "9000:9000" # API Port
-      - "9001:9001" # Console (Giao diện quản lý)
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password123
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
+version: '3.8'
 
-volumes:
-  minio_data:
+services:
+  backend:
+    build: .
+    container_name: edushare-backend
+    ports:
+      - "3000:3000"
+    environment:
+      # --- KẾT NỐI AWS RDS ---
+      DATABASE_URL: "postgresql://postgres:14112005!DUong@edushare-db.cyjgquuw273e.us-east-1.rds.amazonaws.com:5432/EduShare?schema=public&sslmode=no-verify"
+      
+      # --- KẾT NỐI AWS S3 ---
+      # Điền thông tin Access Key thật của IAM User trên AWS vào đây
+      S3_REGION: "us-east-1"
+      S3_ACCESS_KEY_ID: "AKIAZQA3OSZMVFTYL5UN"
+      S3_SECRET_ACCESS_KEY: "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"
+      S3_BUCKET_NAME: "edushare-storage-2026-652892608089-us-east-1-an"
+      S3_SIGNED_URL_EXPIRES: "900"
