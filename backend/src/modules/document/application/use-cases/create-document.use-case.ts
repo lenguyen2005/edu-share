@@ -1,6 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { IDocumentRepository } from '../../domain/interfaces/document.repository.interface';
-import { IStorageService } from '../../domain/interfaces/storage.service.interface';
 import { DocumentEntity } from '../../domain/entities/document.entity';
 import { UploadDocumentDto } from '../dtos/upload-document.dto';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,29 +8,19 @@ import { EventBus } from '@nestjs/cqrs';
 import { DocumentUploadedEvent } from '../events/document-uploaded.event';
 
 @Injectable()
-export class UploadDocumentUseCase {
+export class CreateDocumentUseCase {
   constructor(
     @Inject('IDocumentRepository')
     private readonly documentRepository: IDocumentRepository,
-    @Inject('IStorageService')
-    private readonly storageService: IStorageService,
     private readonly eventBus: EventBus,
   ) {}
 
-  async execute(
-    dto: UploadDocumentDto,
-    file: Express.Multer.File,
-    authorId: string,
-  ) {
-    const fileKey = `docs/${uuidv4()}-${file.originalname}`;
-
-    await this.storageService.upload(file, fileKey);
-
+  async execute(dto: UploadDocumentDto, authorId: string) {
     const document = DocumentEntity.create({
       id: uuidv4(),
       title: dto.title,
       description: dto.description || null,
-      fileKey,
+      fileKey: dto.fileKey,
       authorId,
       categoryId: dto.categoryId,
       status: dto.status || DocumentStatus.DRAFT,

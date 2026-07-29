@@ -7,6 +7,7 @@ dotenv.config();
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
+  console.log('=== CHECK URL BẰNG CODE ===', process.env.DATABASE_URL);
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());

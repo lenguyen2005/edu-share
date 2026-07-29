@@ -1,5 +1,5 @@
 import { InvalidTitleException } from './../../domain/exceptions/invalid-title.exception';
-import { UploadDocumentUseCase } from './upload-document.use-case';
+import { UploadDocumentUseCase } from './create-document.use-case';
 import { DocumentEntity } from '../../domain/entities/document.entity';
 
 describe('UploadDocumentUseCase', () => {

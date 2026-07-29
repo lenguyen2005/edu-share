@@ -17,4 +17,8 @@ export class UploadDocumentDto {
   @IsEnum(DocumentStatus)
   @IsOptional()
   status?: DocumentStatus;
+
+  @IsString()
+  @IsNotEmpty()
+  fileKey: string;
 }

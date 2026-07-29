@@ -3,8 +3,6 @@ import {
   UseGuards,
   Post,
   Body,
-  UseInterceptors,
-  UploadedFile,
   Get,
   Param,
   Delete,
@@ -12,24 +10,29 @@ import {
   ParseIntPipe,
   Patch,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/modules/auth/infrastructure/guards/jwt-auth.guard';
-import { UploadDocumentUseCase } from '../../application/use-cases/upload-document.use-case';
+import { OptionalJwtAuthGuard } from 'src/modules/auth/infrastructure/guards/optional-jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { UploadDocumentDto } from '../../application/dtos/upload-document.dto';
 import { IUserIdentity } from 'src/modules/auth/domain/interfaces/identity.interface';
-import { Express } from 'express';
+
+// DTOs
+import { UploadDocumentDto } from '../../application/dtos/upload-document.dto';
+
+// Use Cases
+import { CreateDocumentUseCase } from './../../application/use-cases/create-document.use-case';
+import { GenerateUploadUrlUseCase } from '../../application/use-cases/generate-upload-url.use-case';
 import { GetDocumentLinkUseCase } from '../../application/use-cases/get-document-link.use-case';
 import { ArchiveDocumentUseCase } from '../../application/use-cases/archive-document.use-case';
 import { GetDocumentsUseCase } from '../../application/use-cases/get-documents.use-case';
-import { OptionalJwtAuthGuard } from 'src/modules/auth/infrastructure/guards/optional-jwt-auth.guard';
 import { PublishDocumentUseCase } from '../../application/use-cases/publish-document.use-case';
 import { GetDocumentUseCase } from '../../application/use-cases/get-document.use-case';
+import { GenerateUrlDto } from '../../application/dtos/generate-url.dto';
 
 @Controller('documents')
 export class DocumentController {
   constructor(
-    private readonly uploadUseCase: UploadDocumentUseCase,
+    private readonly createDocumentUseCase: CreateDocumentUseCase,
+    private readonly generateUploadUrlUseCase: GenerateUploadUrlUseCase,
     private readonly getDocumentLinkUseCase: GetDocumentLinkUseCase,
     private readonly archiveDocumentUseCase: ArchiveDocumentUseCase,
     private readonly getDocumentsUseCase: GetDocumentsUseCase,
@@ -47,15 +50,27 @@ export class DocumentController {
     return document;
   }
 
-  @Post('upload')
+  @Post('upload-url')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
-  async upload(
+  async getUploadUrl(@Body() dto: GenerateUrlDto) {
+    const result = await this.generateUploadUrlUseCase.execute(
+      dto.fileName,
+      dto.contentType,
+    );
+
+    return {
+      success: true,
+      data: result,
+    };
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  async create(
     @Body() dto: UploadDocumentDto,
-    @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: IUserIdentity,
   ) {
-    const result = await this.uploadUseCase.execute(dto, file, user.id);
+    const result = await this.createDocumentUseCase.execute(dto, user.id);
 
     return {
       success: true,

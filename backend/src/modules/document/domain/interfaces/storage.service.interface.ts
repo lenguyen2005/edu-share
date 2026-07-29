@@ -1,5 +1,7 @@
 export interface IStorageService {
-  upload(file: Express.Multer.File, key: string): Promise<string>;
-  getSignedUrl(fileKey: string): Promise<string>;
-  delete(fileKey: string): Promise<void>;
+  getPresignedUploadUrl(key: string, contentType: string): Promise<string>;
+
+  getSignedUrl(key: string): Promise<string>;
+
+  delete(key: string): Promise<void>;
 }
