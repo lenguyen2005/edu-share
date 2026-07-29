@@ -1,48 +1,43 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
-import { toast } from "sonner";
+import { useMutation } from '@tanstack/react-query';
+import { documentApi } from '../api/document.api';
+import { CreateDocumentPayload } from '../types/create-document-payload.type';
+// Import documentQueryKeys tuỳ thuộc vào cách bạn định nghĩa ở types/document-query-key.ts
 
-import { documentApi } from "../api/document.api";
-import { DOCUMENT_QUERY_KEYS } from "../types/document-query-key";
-import { UploadDocumentPayload } from "../types/upload-document-payload.type";
+interface UploadVariables {
+  file: File;
+  metadata: Omit<CreateDocumentPayload, 'fileKey'>; // Gồm title, description, categoryId...
+  onProgress?: (progress: number) => void; // Hàm callback để render thanh tiến trình
+}
 
-export function useUploadDocument() {
-  const queryClient = useQueryClient();
+export const useUploadDocument = () => {
 
   return useMutation({
-    mutationFn: async (payload: UploadDocumentPayload) => {
-      const formData = new FormData();
+    mutationFn: async ({ file, metadata, onProgress }: UploadVariables) => {
+      // BƯỚC 1: Lấy URL và fileKey
+      const urlResponse = await documentApi.getUploadUrl({
+        fileName: file.name,
+        contentType: file.type,
+      });
+      // (Lưu ý: Truy xuất .data tuỳ thuộc vào cấu trúc response interceptor của axiosClient)
+      const { uploadUrl, fileKey } = urlResponse.data.data;
 
-      formData.append("title", payload.title);
+      // BƯỚC 2: Upload file vật lý lên AWS S3
+      await documentApi.uploadToS3(uploadUrl, file, onProgress);
 
-      if (payload.description) {
-        formData.append("description", payload.description);
-      }
-
-      formData.append("categoryId", payload.categoryId);
-      formData.append("status", payload.status);
-      formData.append("file", payload.file);
-
-      const { data } = await documentApi.upload(formData);
-
-      return data;
-    },
-
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: DOCUMENT_QUERY_KEYS.lists(),
+      // BƯỚC 3: Lưu Metadata vào Database NestJS
+      const createResponse = await documentApi.createDocument({
+        ...metadata,
+        fileKey,
       });
 
-      toast.success("Tải lên tài liệu thành công!");
+      return createResponse.data.data;
     },
-
+    onSuccess: () => {
+      // Invalidate cache để danh sách tự động cập nhật
+      // queryClient.invalidateQueries({ queryKey: documentQueryKeys.lists() });
+    },
     onError: (error) => {
-      const axiosError = error as AxiosError<{ message?: string }>;
-
-      toast.error(
-        axiosError.response?.data?.message ??
-          "Có lỗi xảy ra khi tải lên tài liệu."
-      );
-    },
+      console.error('Lỗi khi tải tài liệu:', error);
+    }
   });
-}
+};

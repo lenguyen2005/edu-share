@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Sora } from "next/font/google";
 import { Toaster } from "sonner";
 
 import "./globals.css";
 
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthInitializer } from "@/modules/auth/components/auth-initializer";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin", "vietnamese"],
+  variable: "--font-jakarta",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const sora = Sora({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-sora",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -24,23 +27,28 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable}`}
-      >
-        <QueryProvider>
-          <AuthInitializer />
-          {children}
-        </QueryProvider>
+    <html
+      lang="vi"
+      suppressHydrationWarning
+      className={`${jakarta.variable} ${sora.variable}`}
+    >
+      <body>
+        <ThemeProvider>
+          <QueryProvider>
+            <AuthInitializer />
 
-        <Toaster
-          richColors
-          position="top-right"
-        />
+            {children}
+
+            <Toaster
+              richColors
+              position="top-right"
+            />
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

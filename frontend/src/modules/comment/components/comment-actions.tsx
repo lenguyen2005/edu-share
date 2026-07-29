@@ -1,84 +1,55 @@
 import type { MouseEventHandler } from "react";
+import { MessageCircle } from "lucide-react";
 
 interface CommentActionsProps {
   canReply?: boolean;
 
-  canEdit?: boolean;
-
-  canDelete?: boolean;
-
-  canResolve?: boolean;
-
-  isResolved?: boolean;
-
   loading?: boolean;
 
   onReply?: MouseEventHandler<HTMLButtonElement>;
-
-  onEdit?: MouseEventHandler<HTMLButtonElement>;
-
-  onDelete?: MouseEventHandler<HTMLButtonElement>;
-
-  onResolve?: MouseEventHandler<HTMLButtonElement>;
 }
 
 export function CommentActions({
   canReply = true,
-  canEdit = false,
-  canDelete = false,
-  canResolve = false,
-  isResolved = false,
   loading = false,
   onReply,
-  onEdit,
-  onDelete,
-  onResolve,
 }: CommentActionsProps) {
+  if (!canReply) {
+    return null;
+  }
+
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-      {canReply && (
-        <button
-          type="button"
-          disabled={loading}
-          className="text-blue-600 hover:underline disabled:opacity-50"
-          onClick={onReply}
-        >
-          Reply
-        </button>
-      )}
+    <div className="mt-3 flex items-center">
+      <button
+        type="button"
+        disabled={loading}
+        onClick={onReply}
+        className="
+          inline-flex
+          items-center
+          gap-2
+          rounded-lg
+          px-3
+          py-1.5
 
-      {canEdit && (
-        <button
-          type="button"
-          disabled={loading}
-          className="text-amber-600 hover:underline disabled:opacity-50"
-          onClick={onEdit}
-        >
-          Edit
-        </button>
-      )}
+          text-sm
+          font-medium
+          text-slate-500
 
-      {canDelete && (
-        <button
-          type="button"
-          disabled={loading}
-          className="text-red-600 hover:underline disabled:opacity-50"
-          onClick={onDelete}
-        >
-          Delete
-        </button>
-      )}
+          transition-all
+          duration-200
 
-      {canResolve && !isResolved && (
-        <button
-          type="button"
-          disabled={loading}
-          className="text-green-600 hover:underline disabled:opacity-50"
-          onClick={onResolve}
-        >
-          Resolve
-        </button>
-      )}
+          hover:bg-indigo-50
+          hover:text-indigo-600
+
+          disabled:cursor-not-allowed
+          disabled:opacity-50
+        "
+      >
+        <MessageCircle size={15} />
+
+        <span>Reply</span>
+      </button>
     </div>
   );
 }
