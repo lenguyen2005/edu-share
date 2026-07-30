@@ -25,10 +25,12 @@ export function UploadDialog({ categoryId }: { categoryId: string }) {
   const handleUpload = async () => {
     if (!file || !title) return;
     const success = await mutateAsync({
-      title,
-      categoryId,
       file,
-      status: "DRAFT",
+      metadata: {
+        title,
+        categoryId,
+        status: "DRAFT",
+      },
     });
     if (success) {
       setOpen(false); // Đóng modal nếu thành công
