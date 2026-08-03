@@ -1,5 +1,5 @@
 "use client";
-//Test CI/CD
+//Test CI/CD pipeline
 
 import { useRouter } from "next/navigation";
 import {
